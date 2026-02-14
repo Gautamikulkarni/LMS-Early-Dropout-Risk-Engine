@@ -1,7 +1,7 @@
 # LMS-Early-Dropout-Risk-Engine
 An AI-powered early warning system that integrates with existing Learning Management Systems (LMS) to detect early signs of student disengagement and predict dropout risk using behavioral and performance data.
 
-##1.Overview
+## 1.Overview
 
 Students rarely drop out suddenly.
 Before disengaging, they show measurable patterns such as reduced activity, declining performance, and prolonged inactivity.
@@ -10,7 +10,7 @@ This system passively observes LMS events, analyzes trends using a pre-trained m
 
 AI supports decisions — teachers remain in control.
 
-##2.System Architecture
+## 2.System Architecture
 LMS Platform
       ↓ (raw events)
 Data Collection Layer
@@ -19,7 +19,7 @@ AI Intelligence Layer
       ↓ (risk prediction + explainability)
 Reporting & Feedback Layer
 
-##3.Core Components
+## 3.Core Components
 
 API Layer – Secure data ingestion
 
@@ -31,7 +31,7 @@ Explainability (SHAP) – Contributing factors
 
 Dashboard & Alerts – Student and teacher insights
 
-##4.AI Design Principles
+## 4.AI Design Principles
 
 Pre-trained global model
 
@@ -43,7 +43,7 @@ Periodic retraining (not per interaction)
 
 Explainable predictions (no black-box decisions)
 
-##5.Key Inputs
+## 5.Key Inputs
 
 Engagement metrics (session duration, inactivity, login frequency)
 
@@ -53,7 +53,7 @@ Assessment performance (topic accuracy, error patterns)
 
 Temporal trends (week-to-week engagement decay)
 
-##6.Outputs
+## 6.Outputs
 
 Students
 
@@ -69,10 +69,10 @@ Top contributing risk factors
 
 Engagement trend analysis
 
-##Tech Stack
+## Tech Stack
 
 Python • AWS (API Gateway, S3, RDS, SageMaker) • SHAP
 
-##Goal
+## Goal
 
 Enable early detection, empower students through self-awareness, and support teacher-led interventions to reduce dropout risk.
