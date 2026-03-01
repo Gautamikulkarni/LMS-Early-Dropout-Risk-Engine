@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Dropout Risk Demo</title>
+  </head>
+  <body>
+    <h2>Dropout Risk Predictor</h2>
+
+    <button onclick="predict()">Predict Risk</button>
+
+    <p id="result"></p>
+
+    <script>
+      async function predict() {
+        const response = await fetch("http://13.233.85.66:8000/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            engagement_slope: -0.6,
+            volatility_index: 0.9,
+            fragmentation_score: 0.8,
+            concept_failure_rate: 0.9,
+          }),
+        });
+
+        const data = await response.json();
+        document.getElementById("result").innerText =
+          "Risk Level: " + data.risk_level + " | Score: " + data.risk_score;
+        //   " | Top contributing factors: " +
+        //   data.top_factors.join(", ");
+      }
+    </script>
+  </body>
+</html>
