@@ -6,3 +6,5 @@ pandas
 numpy
 shap
 scikit-learn
+python-jose[cryptography]
+requests
