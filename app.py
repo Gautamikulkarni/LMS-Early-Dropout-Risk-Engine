@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
 import boto3
@@ -9,6 +10,13 @@ import pandas as pd
 import json
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 BUCKET_NAME = "s3datasetbucket"
 MODEL_KEY = "dropout_xgb_model.pkl"
@@ -61,17 +69,15 @@ Your response should:
 
 Keep the tone warm, professional, and constructive. Avoid technical jargon."""
 
-    body = json.dumps({
-        "messages": [{"role": "user", "content": [{"text": prompt}]}],
-        "inferenceConfig": {"max_new_tokens": 400}
-    })
-
-    response = bedrock.invoke_model(
-        modelId="amazon.nova-lite-v1:0",
-        body=body
+    response = bedrock.converse(
+        modelId="global.amazon.nova-2-lite-v1:0",
+        messages=[{
+            "role": "user",
+            "content": [{"text": prompt}]
+        }],
+        inferenceConfig={"maxTokens": 400}
     )
-    result = json.loads(response["body"].read())
-    return result["output"]["message"]["content"][0]["text"]
+    return response["output"]["message"]["content"][0]["text"]
 
 @app.post("/predict")
 def predict(student: StudentInput):
