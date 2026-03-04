@@ -1,11 +1,9 @@
 fastapi
 uvicorn
-gunicorn
 boto3
-psycopg2-binary
+joblib
+xgboost
+shap
 pandas
 numpy
-shap
 scikit-learn
-python-jose[cryptography]
-requests
