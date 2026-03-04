@@ -22,7 +22,7 @@ def download_model():
 download_model()
 model = joblib.load(LOCAL_MODEL_PATH)
 explainer = shap.TreeExplainer(model)
-bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
+bedrock = boto3.client("bedrock-runtime", region_name="ap-south-1")
 
 class StudentInput(BaseModel):
     median_engagement: float
@@ -67,7 +67,7 @@ Keep the tone warm, professional, and constructive. Avoid technical jargon."""
     })
 
     response = bedrock.invoke_model(
-        modelId="amazon.nova-lite-v1:0",
+        modelId="amazon.nova-2-lite-v1:0",
         body=body
     )
     result = json.loads(response["body"].read())
