@@ -67,7 +67,7 @@ Keep the tone warm, professional, and constructive. Avoid technical jargon."""
     })
 
     response = bedrock.invoke_model(
-        modelId="amazon.nova-2-lite-v1:0",
+        modelId="ap.amazon.nova-2-lite-v1:0",
         body=body
     )
     result = json.loads(response["body"].read())
