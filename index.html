@@ -612,7 +612,29 @@
       <div class="logo-sub">Behavioral Intelligence System</div>
     </div>
   </div>
+  
+  <div style="display:flex; gap:10px; align-items:center;">
+  <button onclick="login()" style="
+    background:#00d4ff;
+    border:none;
+    padding:8px 14px;
+    border-radius:6px;
+    font-weight:bold;
+    cursor:pointer;
+  ">Login</button>
+
+  <button onclick="logout()" style="
+    background:#ff3b5c;
+    border:none;
+    padding:8px 14px;
+    border-radius:6px;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+  ">Logout</button>
+
   <div class="header-badge">Live Analysis</div>
+</div>
 </header>
 
 <div class="main">
@@ -714,15 +736,40 @@
 </div>
 
 <script>
+// Cognito configuration
+const COGNITO_DOMAIN = "https://ap-south-13jhoa6lmn.auth.ap-south-1.amazoncognito.com";
+const CLIENT_ID = "2uiog0l5j4v9flu4ifk5efea2n";
+const REDIRECT_URI = window.location.origin;
 const API_URL = () => document.getElementById('apiUrl').value.trim();
-
+  
+function parseToken() {
+if(window.location.hash.includes("id_token")) {
+const params = new URLSearchParams(window.location.hash.substring(1));
+const idToken = params.get("id_token");
+localStorage.setItem("id_token", idToken);
+window.history.replaceState({}, document.title, "/");
+}
+}
+parseToken();
 function getVal(id) {
   const el = document.getElementById(id);
   const v = el.value;
   if (id === 'longest_drop_streak' || id === 'total_attempts') return parseInt(v);
   return parseFloat(v);
 }
-
+function login() {
+const url =
+`${COGNITO_DOMAIN}/login?client_id=${CLIENT_ID}
+&response_type=token
+&scope=email+openid
+&redirect_uri=${REDIRECT_URI}`;
+window.location.href = url;
+}
+function logout() {
+localStorage.removeItem("id_token");
+window.location.href =
+`${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${REDIRECT_URI}`;
+}
 function showLoading() {
   document.getElementById('content').innerHTML = `
     <div class="loading-state">
@@ -814,13 +861,15 @@ function renderResults(data) {
     if (bar) bar.style.width = prob + '%';
   }, 100);
 }
-
+if(!localStorage.getItem("id_token")){
+alert("Please login first!");
+return;
+}
 async function runPrediction() {
   const btn = document.getElementById('predictBtn');
   btn.disabled = true;
   btn.textContent = 'Analyzing...';
   btn.classList.add('loading');
-
   showLoading();
 
   const payload = {
@@ -843,7 +892,10 @@ async function runPrediction() {
   try {
     const res = await fetch(API_URL() + '/predict', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + localStorage.getItem("id_token")
+      },
       body: JSON.stringify(payload)
     });
 
