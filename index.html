@@ -861,11 +861,12 @@ function renderResults(data) {
     if (bar) bar.style.width = prob + '%';
   }, 100);
 }
-if(!localStorage.getItem("id_token")){
-alert("Please login first!");
-return;
-}
+
 async function runPrediction() {
+  if(!localStorage.getItem("id_token")){
+    alert("Please login first!");
+    return;
+    }
   const btn = document.getElementById('predictBtn');
   btn.disabled = true;
   btn.textContent = 'Analyzing...';
