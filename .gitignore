@@ -1,4 +1,26 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .env
 venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Node
+node_modules/
+package-lock.json
+package.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile.dockerfile
+
+# Cache
+*.log
