@@ -1,9 +1,12 @@
 fastapi
 uvicorn
+pydantic
 boto3
 joblib
-xgboost
 shap
-pandas
 numpy
+pandas
+python-jose
+requests
 scikit-learn
+xgboost
