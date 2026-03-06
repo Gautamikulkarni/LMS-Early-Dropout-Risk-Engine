@@ -42,13 +42,14 @@ def verify_token(token):
     for k in jwks["keys"]:
         if k["kid"] == headers["kid"]:
             key = k
-    payload = jwt.decode(
-        token,
-        key,
-        algorithms=["RS256"],
-        audience=CLIENT_ID,
-        issuer=f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{USER_POOL_ID}"
-    )
+   payload = jwt.decode(
+    token,
+    key,
+    algorithms=["RS256"],
+    audience=CLIENT_ID,
+    issuer=f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{USER_POOL_ID}",
+    options={"verify_at_hash": False}
+)
     return payload
     
 def download_model():
