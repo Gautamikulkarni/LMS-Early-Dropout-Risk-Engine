@@ -15,12 +15,8 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-<<<<<<< HEAD
-    allow_origins=["*"],   # allow all origins (simplest for hackathon)
+    allow_origins=["*"],   
     allow_credentials=True,
-=======
-    allow_origins=["*"],
->>>>>>> e4f87519d90a5a427b24e33b8ad132c3c634519d
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -168,8 +164,4 @@ def predict(student: StudentInput, request: Request):
 
 @app.get("/")
 def home():
-<<<<<<< HEAD
     return {"status": "Behavioral AI backend running"}
-=======
-    return {"status": "Behavioral AI backend running"}
->>>>>>> e4f87519d90a5a427b24e33b8ad132c3c634519d
