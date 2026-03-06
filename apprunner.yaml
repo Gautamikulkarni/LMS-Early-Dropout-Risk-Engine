@@ -1,9 +1,12 @@
 version: 1.0
-runtime: python3
+
+runtime: python311
+
 build:
   commands:
     build:
-      - pip3 install --no-cache-dir -r requirements.txt
+      - pip install --no-cache-dir -r requirements.txt
+
 run:
   command: bash start.sh
   network:
