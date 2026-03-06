@@ -6,8 +6,9 @@ build:
   commands:
     build:
       - pip3 install --no-cache-dir -r requirements.txt
+
 run:
-  runtime-version: 3.11
+  runtime-version: 3.10
   command: ./start.sh
   network:
     port: 8000
