@@ -6,6 +6,7 @@
 <title>InsightED – Early Dropout Risk Engine</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Epilogue:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/amazon-cognito-identity-js/6.2.1/amazon-cognito-identity.min.js"></script>
 <style>
 :root {
   --ff-serif: 'Playfair Display', Georgia, serif;
@@ -504,6 +505,11 @@ html,body{height:100%;font-family:var(--ff-sans);background:var(--bg);color:var(
 </div>
 
 <script>
+  const poolData = {
+  UserPoolId: "ap-south-1_3jHoa6lMn",
+  ClientId: "2uiog0l5j4v9flu4ifk5efea2n"
+};
+const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 const API = 'https://vnpnqcr579.ap-south-1.awsapprunner.com';
 const KNOWN = {'student.cognito@gmail.com':'student','teacher.cognito@gmail.com':'teacher','gautamik.2005@gmail.com':'tester'};
 const LBL = {
@@ -563,24 +569,58 @@ function nameFor(r,em){
   return em.split('@')[0];
 }
 
-function doSignIn(){
-  const em=document.getElementById('si-em').value.trim().toLowerCase();
-  const pw=document.getElementById('si-pw').value;
-  const err=document.getElementById('si-err'); err.style.display='none';
-  if(!em||!pw){err.textContent='Please enter your email and password.';err.style.display='block';return;}
-  const r=KNOWN[em]||role||'student';
-  user={email:em,role:r,name:nameFor(r,em),isNew:!KNOWN[em]};
-  route(r,em,!KNOWN[em]);
+function doSignIn() {
+  const email = document.getElementById("si-em").value;
+  const password = document.getElementById("si-pw").value;
+  const authenticationData = {
+    Username: email,
+    Password: password
+  };
+  const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+  const userData = {
+    Username: email,
+    Pool: userPool
+  };
+  const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+  cognitoUser.authenticateUser(authenticationDetails, {
+    onSuccess: function(result) {
+      const idToken = result.getIdToken().decodePayload();
+      const groups = idToken["cognito:groups"];
+      if (groups.includes("teacher")) {
+        route("teacher", email, false);
+      }
+      else if (groups.includes("tester")) {
+        route("tester", email, false);
+      }
+      else {
+        route("student", email, false);
+      }
+    },
+    onFailure: function(err) {
+      document.getElementById("si-err").innerText = err.message;
+      document.getElementById("si-err").style.display = "block";
+    }
+  });
 }
 
-function doSignUp(){
-  const nm=document.getElementById('su-nm').value.trim();
-  const em=document.getElementById('su-em').value.trim().toLowerCase();
-  const pw=document.getElementById('su-pw').value;
-  const err=document.getElementById('su-err'); err.style.display='none';
-  if(!nm||!em||!pw||pw.length<6){err.textContent='Please fill all fields. Password must be at least 6 characters.';err.style.display='block';return;}
-  user={email:em,role:role||'student',name:nm,isNew:true};
-  route(role||'student',em,true);
+function doSignUp() {
+  const email = document.getElementById("su-em").value;
+  const password = document.getElementById("su-pw").value;
+  const attributeList = [];
+  const dataEmail = {
+    Name: 'email',
+    Value: email
+  };
+  const attributeEmail = new AmazonCognitoIdentity.CognitoUserAttribute(dataEmail);
+  attributeList.push(attributeEmail);
+  userPool.signUp(email, password, attributeList, null, function(err, result) {
+    if (err) {
+      document.getElementById("su-err").innerText = err.message;
+      document.getElementById("su-err").style.display = "block";
+      return;
+    }
+    alert("Account created! Please verify email.");
+  });
 }
 
 function route(r,em,isNew){
