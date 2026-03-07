@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>InsightED – Early Dropout Risk Engine</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Epilogue:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="icon" href="data:,">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/amazon-cognito-identity-js/6.2.1/amazon-cognito-identity.min.js"></script>
 <style>
 :root {
   --ff-serif: 'Playfair Display', Georgia, serif;
@@ -504,6 +504,7 @@ html,body{height:100%;font-family:var(--ff-sans);background:var(--bg);color:var(
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/amazon-cognito-identity-js/6.2.1/amazon-cognito-identity.min.js"></script>
 <script>
   const poolData = {
   UserPoolId: "ap-south-1_3jHoa6lMn",
@@ -522,7 +523,6 @@ const LBL = {
   worst_concept_failure:'Worst Knowledge Gap',concept_variability:'Learning Consistency'
 };
 let role=null,user=null,CH={};
-
 function toggleTheme(){
   const h=document.documentElement,n=h.getAttribute('data-theme')==='dark'?'light':'dark';
   h.setAttribute('data-theme',n);
@@ -537,9 +537,7 @@ function rebuildCharts(){
   if(a.id==='student-dash'){const x=document.querySelector('#student-dash .sb-item.sa');if(x)x.click();}
   if(a.id==='teacher-dash'&&document.getElementById('tn-ov').classList.contains('ta')) tNav('ov');
 }
-
 function showPage(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
-
 function selectRole(r){
   role=r;
   const L={'student':'Student','teacher':'Teacher','tester':'Tester'};
