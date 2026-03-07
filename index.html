@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>InsightED – Early Dropout Risk Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Epilogue:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --ff-serif: 'Playfair Display', Georgia, serif;
+  --ff-sans: 'Epilogue', sans-serif;
+  --ff-mono: 'JetBrains Mono', monospace;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --tr: 0.2s ease;
+}
+[data-theme="dark"] {
+  --bg:       #0d1117;
+  --bg2:      #161b22;
+  --bg3:      #1c2333;
+  --border:   #2a3546;
+  --border2:  #1e2d42;
+  --text:     #d8e4f0;
+  --text2:    #8a9db5;
+  --text3:    #4f6580;
+  --accent:   #3b9eff;
+  --ac-bg:    rgba(59,158,255,0.08);
+  --warm:     #e8845a;
+  --wm-bg:    rgba(232,132,90,0.08);
+  --green:    #3dd68c;
+  --yellow:   #f0c040;
+  --red:      #f4645f;
+  --shadow:   0 1px 3px rgba(0,0,0,0.4),0 4px 16px rgba(0,0,0,0.25);
+  --hero-bg:  radial-gradient(ellipse 80% 55% at 65% 15%,rgba(59,158,255,0.09) 0%,transparent 60%),
+              radial-gradient(ellipse 50% 40% at 8% 85%,rgba(232,132,90,0.06) 0%,transparent 55%),
+              #0d1117;
+}
+[data-theme="light"] {
+  --bg:       #f4efe6;
+  --bg2:      #ece6db;
+  --bg3:      #e2dbd0;
+  --border:   #cec6b8;
+  --border2:  #c5bdb0;
+  --text:     #26190f;
+  --text2:    #6b5d4d;
+  --text3:    #9e8e7a;
+  --accent:   #1a6bc9;
+  --ac-bg:    rgba(26,107,201,0.07);
+  --warm:     #b85520;
+  --wm-bg:    rgba(184,85,32,0.07);
+  --green:    #1a7a4a;
+  --yellow:   #a07010;
+  --red:      #c03530;
+  --shadow:   0 1px 3px rgba(0,0,0,0.07),0 4px 16px rgba(0,0,0,0.05);
+  --hero-bg:  radial-gradient(ellipse 80% 55% at 65% 15%,rgba(26,107,201,0.07) 0%,transparent 60%),
+              radial-gradient(ellipse 50% 40% at 8% 85%,rgba(184,85,32,0.05) 0%,transparent 55%),
+              #f4efe6;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:var(--ff-sans);background:var(--bg);color:var(--text);overflow-x:hidden}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.screen{display:none;min-height:100vh;flex-direction:column}
+.screen.active{display:flex}
+
+/* theme toggle */
+.thm{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:var(--tr);flex-shrink:0}
+.thm:hover{border-color:var(--accent)}
+
+/* ── LANDING ── */
+#landing{background:var(--hero-bg)}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:20px 56px;border-bottom:1px solid var(--border)}
+.logo{font-family:var(--ff-serif);font-size:21px;font-weight:900;letter-spacing:-0.2px;color:var(--text)}
+.logo em{font-style:italic;color:var(--accent)}
+.nav-r{display:flex;align-items:center;gap:4px}
+.nl{padding:7px 16px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:500;color:var(--text2);cursor:pointer;transition:var(--tr);border:none;background:none;font-family:var(--ff-sans)}
+.nl:hover{color:var(--text);background:var(--bg2)}
+.nl-cta{margin-left:6px;padding:7px 20px;border-radius:var(--radius-sm);background:var(--accent);color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;border:none;font-family:var(--ff-sans);transition:var(--tr)}
+.nl-cta:hover{opacity:0.88}
+.hero{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:72px 56px;max-width:840px}
+.hero-ey{font-family:var(--ff-mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:22px;padding:4px 12px;border:1px solid var(--ac-bg);border-radius:100px;background:var(--ac-bg)}
+.hero h1{font-family:var(--ff-serif);font-size:clamp(44px,5.2vw,72px);font-weight:900;line-height:1.07;letter-spacing:-1.5px;margin-bottom:22px}
+.hero h1 .l2{color:var(--accent)}
+.hero h1 .l3{font-style:italic;color:var(--warm)}
+.hero-p{font-size:15.5px;color:var(--text2);line-height:1.75;max-width:500px;margin-bottom:36px;font-weight:400}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn-p{padding:11px 30px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--ff-sans);transition:var(--tr)}
+.btn-p:hover{opacity:0.88;transform:translateY(-1px)}
+.btn-g{padding:11px 30px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--ff-sans);transition:var(--tr)}
+.btn-g:hover{border-color:var(--text2);color:var(--text)}
+.hero-foot{display:flex;gap:40px;flex-wrap:wrap;margin-top:52px;padding-top:36px;border-top:1px solid var(--border)}
+.fn-lbl{font-size:10.5px;font-family:var(--ff-mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
+.fn-val{font-family:var(--ff-serif);font-size:21px;font-weight:700;color:var(--text)}
+
+/* ── ROLE ── */
+#role-select{background:var(--bg);align-items:center;justify-content:center;padding:40px;position:relative}
+.back-btn{position:absolute;top:24px;left:24px;padding:7px 15px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);cursor:pointer;font-size:13px;font-family:var(--ff-sans);transition:var(--tr)}
+.back-btn:hover{color:var(--text)}
+.role-hd{text-align:center;margin-bottom:44px}
+.role-hd h2{font-family:var(--ff-serif);font-size:36px;font-weight:900;margin-bottom:8px;letter-spacing:-0.3px}
+.role-hd p{color:var(--text2);font-size:14.5px}
+.role-cards{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;max-width:800px}
+.role-card{flex:1;min-width:220px;max-width:255px;padding:30px 24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:var(--tr);position:relative;overflow:hidden}
+.role-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.role-card.sc:hover{border-color:var(--accent)}
+.role-card.tc:hover{border-color:var(--warm)}
+.role-card.xc:hover{border-color:var(--green)}
+.rc-tag{font-family:var(--ff-mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:18px}
+.role-card h3{font-family:var(--ff-serif);font-size:22px;font-weight:700;margin-bottom:9px}
+.role-card p{font-size:13px;color:var(--text2);line-height:1.65}
+.rc-line{position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 var(--radius) var(--radius);opacity:0;transition:var(--tr)}
+.role-card:hover .rc-line{opacity:1}
+.role-card.sc .rc-line{background:var(--accent)}
+.role-card.tc .rc-line{background:var(--warm)}
+.role-card.xc .rc-line{background:var(--green)}
+
+/* ── AUTH ── */
+#auth-page{background:var(--bg);align-items:center;justify-content:center;padding:40px}
+.auth-card{width:100%;max-width:400px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:38px;box-shadow:var(--shadow)}
+.auth-ey{font-family:var(--ff-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
+.auth-card h2{font-family:var(--ff-serif);font-size:25px;font-weight:700;margin-bottom:5px;letter-spacing:-0.2px}
+.auth-sub{font-size:13.5px;color:var(--text2);margin-bottom:22px}
+.auth-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:100px;font-size:11.5px;font-family:var(--ff-mono);margin-bottom:20px}
+.auth-pill.blue{background:var(--ac-bg);border:1px solid rgba(59,158,255,0.15);color:var(--accent)}
+.auth-pill.orange{background:var(--wm-bg);border:1px solid rgba(232,132,90,0.15);color:var(--warm)}
+.auth-pill.grn{background:rgba(61,214,140,0.07);border:1px solid rgba(61,214,140,0.15);color:var(--green)}
+.auth-tabs{display:flex;background:var(--bg3);border-radius:var(--radius-sm);padding:3px;margin-bottom:22px;border:1px solid var(--border)}
+.auth-tab{flex:1;padding:7px;text-align:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;transition:var(--tr);color:var(--text3);border:none;background:none;font-family:var(--ff-sans)}
+.auth-tab.active{background:var(--bg2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.12)}
+.fg{margin-bottom:17px}
+.fg label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500;letter-spacing:0.02em}
+.fg input{width:100%;padding:10px 13px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13.5px;font-family:var(--ff-sans);transition:border-color var(--tr);outline:none}
+.fg input:focus{border-color:var(--accent)}
+.btn-auth{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--ff-sans);transition:var(--tr);margin-bottom:8px}
+.btn-auth:hover{opacity:0.88}
+.auth-err{color:var(--red);font-size:12.5px;margin-top:6px;display:none;text-align:center}
+
+/* ── DASH ── */
+.dash-layout{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:228px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 0;flex-shrink:0}
+.sb-logo-wrap{padding:0 20px 18px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.sb-logo{font-family:var(--ff-serif);font-size:17px;font-weight:900;color:var(--text)}
+.sb-logo em{font-style:italic;color:var(--accent)}
+.sb-role{margin-top:5px;font-family:var(--ff-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3)}
+.sb-nav{flex:1;padding:0 10px}
+.sb-item{display:flex;align-items:center;padding:9px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:13.5px;color:var(--text2);transition:var(--tr);margin-bottom:1px;border:none;background:none;width:100%;text-align:left;font-family:var(--ff-sans);font-weight:400}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.sa{background:var(--ac-bg);color:var(--accent);font-weight:500}
+.sb-item.ta{background:var(--wm-bg);color:var(--warm);font-weight:500}
+.sb-item.ga{background:rgba(61,214,140,0.07);color:var(--green);font-weight:500}
+.sb-bot{padding:14px 20px;border-top:1px solid var(--border)}
+.u-info{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.u-av{width:33px;height:33px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:13px;flex-shrink:0;font-family:var(--ff-sans)}
+.u-name{font-size:13px;font-weight:600;line-height:1.3}
+.u-email{font-size:11px;color:var(--text3)}
+.logout-btn{width:100%;padding:7px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);cursor:pointer;font-size:12.5px;font-family:var(--ff-sans);transition:var(--tr)}
+.logout-btn:hover{color:var(--red);border-color:var(--red)}
+.main{flex:1;overflow-y:auto;padding:30px 34px;background:var(--bg)}
+.ph{margin-bottom:26px}
+.pt{font-family:var(--ff-serif);font-size:25px;font-weight:700;letter-spacing:-0.3px}
+.ps{color:var(--text2);font-size:13.5px;margin-top:5px;line-height:1.5}
+
+/* cards */
+.cr{display:grid;gap:13px;margin-bottom:20px}
+.c3{grid-template-columns:repeat(3,1fr)}
+.c4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.cl{font-size:10.5px;color:var(--text3);font-family:var(--ff-mono);text-transform:uppercase;letter-spacing:0.09em;margin-bottom:9px}
+.cv{font-family:var(--ff-serif);font-size:28px;font-weight:700;letter-spacing:-0.5px}
+.cs{font-size:12px;color:var(--text3);margin-top:5px;line-height:1.4}
+.rh{color:var(--red)}.rm{color:var(--yellow)}.rl{color:var(--green)}
+.rb{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;font-family:var(--ff-mono)}
+.rb.high{background:rgba(244,100,95,0.1);color:var(--red);border:1px solid rgba(244,100,95,0.2)}
+.rb.medium{background:rgba(240,192,64,0.1);color:var(--yellow);border:1px solid rgba(240,192,64,0.2)}
+.rb.low{background:rgba(61,214,140,0.1);color:var(--green);border:1px solid rgba(61,214,140,0.2)}
+
+/* chart */
+.cg{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;margin-bottom:20px}
+.cg.full{grid-column:1/-1}
+.cc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.cc.full{grid-column:1/-1}
+.ct{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:3px}
+.cd{font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.4}
+.cw{position:relative;height:185px}
+
+/* drivers */
+.sec-lbl{font-family:var(--ff-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:11px}
+.drv-list{display:flex;flex-direction:column;gap:9px;margin-bottom:20px}
+.drv-row{display:flex;align-items:center;gap:13px;padding:11px 15px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.drv-n{font-family:var(--ff-mono);font-size:10px;color:var(--text3);width:16px;flex-shrink:0}
+.drv-lbl{font-size:13.5px;font-weight:500;color:var(--text);flex:1}
+.drv-track{width:90px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;flex-shrink:0}
+.drv-fill{height:100%;border-radius:2px;background:var(--accent)}
+.drv-val{font-family:var(--ff-mono);font-size:11px;color:var(--text3);width:38px;text-align:right;flex-shrink:0}
+
+/* AI box */
+.ai-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;position:relative;overflow:hidden}
+.ai-box::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--warm))}
+.ai-title{font-family:var(--ff-serif);font-size:16px;font-weight:700;margin-bottom:3px}
+.ai-sub{font-size:11.5px;color:var(--text3);margin-bottom:14px;font-family:var(--ff-mono);letter-spacing:0.04em}
+.ai-txt{font-size:13.5px;line-height:1.8;color:var(--text2)}
+
+/* teacher table */
+.tw{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.st{width:100%;border-collapse:collapse}
+.st th{text-align:left;padding:10px 15px;font-size:10px;font-family:var(--ff-mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.09em;border-bottom:1px solid var(--border);background:var(--bg3)}
+.st td{padding:12px 15px;border-bottom:1px solid var(--border2);font-size:13.5px;color:var(--text)}
+.st tr:last-child td{border-bottom:none}
+.st tbody tr:hover td{background:var(--bg3);cursor:pointer}
+.sn{display:flex;align-items:center;gap:10px}
+.sav{width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;font-family:var(--ff-sans)}
+.pb{height:4px;background:var(--border);border-radius:2px;width:60px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:7px}
+.pf{height:100%;border-radius:2px}
+
+/* tester */
+.tl{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.if{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px}
+.if h3{font-family:var(--ff-serif);font-size:17px;font-weight:700;margin-bottom:16px}
+.igl{font-family:var(--ff-mono);font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;margin:14px 0 9px}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.ifd label{display:block;font-size:11.5px;color:var(--text2);margin-bottom:5px;font-weight:500}
+.ifd input{width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12.5px;font-family:var(--ff-mono);outline:none;transition:border-color var(--tr)}
+.ifd input:focus{border-color:var(--accent)}
+.pred-btn{width:100%;margin-top:16px;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--ff-sans);transition:var(--tr)}
+.pred-btn:hover{opacity:0.88}
+.pred-btn:disabled{opacity:0.45;cursor:not-allowed}
+.rp{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px}
+.rp h3{font-family:var(--ff-serif);font-size:17px;font-weight:700;margin-bottom:16px}
+.re{text-align:center;color:var(--text3);padding:44px 20px;font-size:14px;line-height:1.7}
+.gw{text-align:center;margin-bottom:20px}
+.gr{width:125px;height:125px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;flex-direction:column;border:5px solid var(--border);position:relative}
+.gp{font-family:var(--ff-serif);font-size:28px;font-weight:700}
+.gl{font-size:10px;color:var(--text3);font-family:var(--ff-mono);margin-top:2px}
+.sl{margin-bottom:16px}
+.sr{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.sl-lbl{width:155px;flex-shrink:0;font-size:12px;color:var(--text2)}
+.sl-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.sl-fill{height:100%;border-radius:3px;background:var(--accent);transition:width 0.5s ease}
+.sl-val{width:45px;text-align:right;font-family:var(--ff-mono);font-size:11px;color:var(--text3)}
+
+/* dropdown */
+.cs-sel{padding:7px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12.5px;font-family:var(--ff-sans);cursor:pointer;outline:none}
+.dr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.dr h3{font-size:14px;font-weight:600;color:var(--text)}
+
+/* day1 */
+.d1{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:40px}
+.d1-t{font-family:var(--ff-serif);font-size:30px;font-weight:700;margin-bottom:13px;letter-spacing:-0.3px}
+.d1-s{color:var(--text2);font-size:15px;max-width:460px;line-height:1.75}
+
+/* static pages */
+#tutorial-page,#about-page{background:var(--bg)}
+.st-nav{display:flex;align-items:center;justify-content:space-between;padding:20px 56px;border-bottom:1px solid var(--border)}
+.st-con{max-width:740px;margin:0 auto;padding:52px 36px}
+.st-con h1{font-family:var(--ff-serif);font-size:38px;font-weight:900;margin-bottom:13px;letter-spacing:-0.5px}
+.st-con .lead{font-size:16.5px;color:var(--text2);line-height:1.75;margin-bottom:32px}
+.content-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:26px;color:var(--text2);font-size:14px;line-height:1.8;border-left:3px solid var(--accent)}
+
+/* breadcrumb */
+.bc{display:flex;align-items:center;gap:8px;margin-bottom:20px;font-size:13px;color:var(--text3)}
+.bc-lnk{cursor:pointer;transition:var(--tr)}
+.bc-lnk:hover{color:var(--accent)}
+.bc-sep{color:var(--border)}
+.bc-cur{color:var(--text)}
+
+/* spinner */
+.spin{width:15px;height:15px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp 0.8s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+@media(max-width:768px){
+  .nav{padding:16px 20px}
+  .hero{padding:52px 22px}
+  .hero h1{font-size:38px}
+  .tl{grid-template-columns:1fr}
+  .c3,.c4{grid-template-columns:1fr 1fr}
+  .cg{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .main{padding:18px}
+}
+</style>
+</head>
+<body>
+
+<!-- LANDING -->
+<div id="landing" class="screen active">
+  <nav class="nav">
+    <div class="logo">Insight<em>ED</em></div>
+    <div class="nav-r">
+      <button class="nl" onclick="showPage('tutorial-page')">Tutorial</button>
+      <button class="nl" onclick="showPage('about-page')">About Us</button>
+      <button class="thm" onclick="toggleTheme()" id="thm-btn">☀</button>
+      <button class="nl-cta" onclick="showPage('role-select')">Sign in</button>
+    </div>
+  </nav>
+  <div class="hero">
+    <div class="hero-ey">AI for Bharat · Behavioral Intelligence</div>
+    <h1>Predict Learning<br/><span class="l2">Breakdowns</span><br/><span class="l3">Before They Happen</span></h1>
+    <p class="hero-p">An explainable AI engine that reads LMS behaviour patterns — engagement, submission delays, concept gaps — and surfaces early dropout risk before it becomes irreversible.</p>
+    <div class="hero-btns">
+      <button class="btn-p" onclick="showPage('role-select')">Get started</button>
+      <button class="btn-g" onclick="showPage('tutorial-page')">See how it works</button>
+    </div>
+    <div class="hero-foot">
+      <div><div class="fn-lbl">Behavioral signals</div><div class="fn-val">14+</div></div>
+      <div><div class="fn-lbl">Explainability</div><div class="fn-val">SHAP</div></div>
+      <div><div class="fn-lbl">Generative AI</div><div class="fn-val">Bedrock</div></div>
+      <div><div class="fn-lbl">Detection</div><div class="fn-val">Real-time</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ROLE SELECT -->
+<div id="role-select" class="screen">
+  <button class="back-btn" onclick="showPage('landing')">← Back</button>
+  <div class="role-hd" style="margin-top:80px">
+    <h2>Who are you?</h2>
+    <p>Choose your role to access the right dashboard</p>
+  </div>
+  <div class="role-cards">
+    <div class="role-card sc" onclick="selectRole('student')">
+      <div class="rc-tag">Student Portal</div>
+      <h3>Student</h3>
+      <p>View your behavioral insights, risk score, and personalized AI recommendations from your LMS activity.</p>
+      <div class="rc-line"></div>
+    </div>
+    <div class="role-card tc" onclick="selectRole('teacher')">
+      <div class="rc-tag">Teacher Portal</div>
+      <h3>Teacher</h3>
+      <p>Monitor at-risk students, view class-wide trends, and plan targeted interventions for those who need support.</p>
+      <div class="rc-line"></div>
+    </div>
+    <div class="role-card xc" onclick="selectRole('tester')">
+      <div class="rc-tag">Model Testing</div>
+      <h3>Tester</h3>
+      <p>Input custom behavioral features and test the ML model directly. See live predictions, SHAP values, and AI output.</p>
+      <div class="rc-line"></div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div id="auth-page" class="screen">
+  <button class="back-btn" onclick="showPage('role-select')">← Back</button>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px">
+    <div class="auth-card">
+      <div class="auth-ey">InsightED · Secure Access</div>
+      <h2>Welcome back</h2>
+      <p class="auth-sub" id="auth-sub">Sign in to access your dashboard</p>
+      <div id="auth-pill-wrap"></div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-si" onclick="switchTab('si')">Sign In</button>
+        <button class="auth-tab" id="tab-su" onclick="switchTab('su')">Sign Up</button>
+      </div>
+      <div id="form-si">
+        <div class="fg"><label>Email address</label><input type="email" id="si-em" placeholder="you@example.com"/></div>
+        <div class="fg"><label>Password</label><input type="password" id="si-pw" placeholder="••••••••"/></div>
+        <button class="btn-auth" onclick="doSignIn()">Sign in</button>
+        <div class="auth-err" id="si-err">Incorrect email or password.</div>
+      </div>
+      <div id="form-su" style="display:none">
+        <div class="fg"><label>Full name</label><input type="text" id="su-nm" placeholder="Your name"/></div>
+        <div class="fg"><label>Email address</label><input type="email" id="su-em" placeholder="you@example.com"/></div>
+        <div class="fg"><label>Password</label><input type="password" id="su-pw" placeholder="Min 6 characters"/></div>
+        <button class="btn-auth" onclick="doSignUp()">Create account</button>
+        <div class="auth-err" id="su-err">Please fill all fields correctly.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STUDENT DASHBOARD -->
+<div id="student-dash" class="screen">
+  <div class="dash-layout">
+    <div class="sidebar">
+      <div class="sb-logo-wrap">
+        <div class="sb-logo">Insight<em>ED</em></div>
+        <div class="sb-role">Student</div>
+      </div>
+      <div class="sb-nav">
+        <button class="sb-item sa" id="sn-ov" onclick="sNav('ov')">Overview</button>
+        <button class="sb-item" id="sn-gr" onclick="sNav('gr')">My Graphs</button>
+        <button class="sb-item" id="sn-ai" onclick="sNav('ai')">AI Insights</button>
+      </div>
+      <div class="sb-bot">
+        <div class="u-info">
+          <div class="u-av" id="s-av">S</div>
+          <div><div class="u-name" id="s-nm">Student</div><div class="u-email" id="s-em">—</div></div>
+        </div>
+        <button class="logout-btn" onclick="logout()">Sign out</button>
+      </div>
+    </div>
+    <div class="main" id="s-main"></div>
+  </div>
+</div>
+
+<!-- TEACHER DASHBOARD -->
+<div id="teacher-dash" class="screen">
+  <div class="dash-layout">
+    <div class="sidebar">
+      <div class="sb-logo-wrap">
+        <div class="sb-logo">Insight<em>ED</em></div>
+        <div class="sb-role" style="color:var(--warm)">Teacher</div>
+      </div>
+      <div class="sb-nav">
+        <button class="sb-item ta" id="tn-ls" onclick="tNav('ls')">At-Risk Students</button>
+        <button class="sb-item" id="tn-ov" onclick="tNav('ov')">Class Overview</button>
+      </div>
+      <div class="sb-bot">
+        <div class="u-info">
+          <div class="u-av" style="background:var(--warm)">M</div>
+          <div><div class="u-name">Prof. Meera Nair</div><div class="u-email" id="t-em">—</div></div>
+        </div>
+        <button class="logout-btn" onclick="logout()">Sign out</button>
+      </div>
+    </div>
+    <div class="main" id="t-main"></div>
+  </div>
+</div>
+
+<!-- TESTER DASHBOARD -->
+<div id="tester-dash" class="screen">
+  <div class="dash-layout">
+    <div class="sidebar">
+      <div class="sb-logo-wrap">
+        <div class="sb-logo">Insight<em>ED</em></div>
+        <div class="sb-role" style="color:var(--green)">Tester</div>
+      </div>
+      <div class="sb-nav">
+        <button class="sb-item ga">Model Tester</button>
+      </div>
+      <div class="sb-bot">
+        <div class="u-info">
+          <div class="u-av" style="background:var(--green);color:#0d1117" id="x-av">G</div>
+          <div><div class="u-name" id="x-nm">Tester</div><div class="u-email" id="x-em">—</div></div>
+        </div>
+        <button class="logout-btn" onclick="logout()">Sign out</button>
+      </div>
+    </div>
+    <div class="main">
+      <div class="ph"><div class="pt">Model Tester</div><div class="ps">Enter behavioral feature values to get a live dropout risk prediction from the ML model.</div></div>
+      <div class="tl">
+        <div class="if">
+          <h3>Feature Input</h3>
+          <div class="igl">Engagement</div>
+          <div class="ig">
+            <div class="ifd"><label>Median Engagement</label><input type="number" id="f1" value="45" step="0.1"/></div>
+            <div class="ifd"><label>Recent 7d Engagement</label><input type="number" id="f2" value="30" step="0.1"/></div>
+            <div class="ifd"><label>Engagement CV</label><input type="number" id="f3" value="0.6" step="0.01"/></div>
+            <div class="ifd"><label>Slope 14d</label><input type="number" id="f4" value="-2.5" step="0.1"/></div>
+          </div>
+          <div class="igl">Behaviour</div>
+          <div class="ig">
+            <div class="ifd"><label>Submission Delay (min)</label><input type="number" id="f5" value="180" step="1"/></div>
+            <div class="ifd"><label>Tab Switch P75</label><input type="number" id="f6" value="8" step="0.1"/></div>
+            <div class="ifd"><label>Drop Streak (days)</label><input type="number" id="f7" value="5" step="1"/></div>
+            <div class="ifd"><label>Response Time (s)</label><input type="number" id="f8" value="45" step="0.1"/></div>
+          </div>
+          <div class="igl">Performance</div>
+          <div class="ig">
+            <div class="ifd"><label>First Attempt Accuracy</label><input type="number" id="f9" value="0.55" step="0.01"/></div>
+            <div class="ifd"><label>Overall Accuracy</label><input type="number" id="f10" value="0.60" step="0.01"/></div>
+            <div class="ifd"><label>Total Attempts</label><input type="number" id="f11" value="25" step="1"/></div>
+            <div class="ifd"><label>Weighted Concept Fail</label><input type="number" id="f12" value="0.45" step="0.01"/></div>
+            <div class="ifd"><label>Worst Concept Fail</label><input type="number" id="f13" value="0.80" step="0.01"/></div>
+            <div class="ifd"><label>Concept Variability</label><input type="number" id="f14" value="0.25" step="0.01"/></div>
+          </div>
+          <button class="pred-btn" id="pred-btn" onclick="runPred()">Run prediction</button>
+        </div>
+        <div class="rp">
+          <h3>Prediction Output</h3>
+          <div id="pred-out"><div class="re">Enter feature values on the left and click <strong>Run prediction</strong> to see the ML model output, SHAP explanation, and Bedrock-generated intervention.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TUTORIAL -->
+<div id="tutorial-page" class="screen">
+  <nav class="st-nav">
+    <div class="logo" style="font-family:var(--ff-serif);font-size:20px;font-weight:900">Insight<em style="font-style:italic;color:var(--accent)">ED</em></div>
+    <button class="btn-g" onclick="showPage('landing')">← Back</button>
+  </nav>
+  <div class="st-con">
+    <h1>Tutorial</h1>
+    <p class="lead">A step-by-step guide to using InsightED across all roles.</p>
+    <div class="content-block"><!-- PASTE YOUR TUTORIAL CONTENT HERE -->Your tutorial content goes here. Add step-by-step instructions, role-by-role usage guides, and any screenshots or video embeds.</div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div id="about-page" class="screen">
+  <nav class="st-nav">
+    <div class="logo" style="font-family:var(--ff-serif);font-size:20px;font-weight:900">Insight<em style="font-style:italic;color:var(--accent)">ED</em></div>
+    <button class="btn-g" onclick="showPage('landing')">← Back</button>
+  </nav>
+  <div class="st-con">
+    <h1>About Us</h1>
+    <p class="lead">The team behind InsightED.</p>
+    <div class="content-block"><!-- PASTE YOUR ABOUT US CONTENT HERE -->Your team information, mission, and project story goes here.</div>
+  </div>
+</div>
+
+<script>
+const API = 'https://vnpnqcr579.ap-south-1.awsapprunner.com';
+const KNOWN = {'student.cognito@gmail.com':'student','teacher.cognito@gmail.com':'teacher','gautamik.2005@gmail.com':'tester'};
+const LBL = {
+  median_engagement:'Overall Engagement Level',recent_7d_median_engagement:'Recent Week Engagement',
+  engagement_cv:'Engagement Consistency',engagement_slope_14d:'Engagement Trend (14d)',
+  median_submission_delay:'Submission Delays',tab_switch_p75:'Attention Stability',
+  median_first_attempt_accuracy:'First Attempt Accuracy',longest_drop_streak:'Longest Inactivity Streak',
+  median_overall_accuracy:'Overall Accuracy',trimmed_avg_response_time:'Response Time Pattern',
+  total_attempts:'Total Activity Count',weighted_concept_failure:'Concept Mastery Gaps',
+  worst_concept_failure:'Worst Knowledge Gap',concept_variability:'Learning Consistency'
+};
+let role=null,user=null,CH={};
+
+function toggleTheme(){
+  const h=document.documentElement,n=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',n);
+  document.getElementById('thm-btn').textContent=n==='dark'?'☀':'☾';
+  rebuildCharts();
+}
+function rebuildCharts(){
+  Object.values(CH).forEach(c=>{try{c.destroy();}catch(e){}});
+  CH={};
+  const a=document.querySelector('.screen.active');
+  if(!a) return;
+  if(a.id==='student-dash'){const x=document.querySelector('#student-dash .sb-item.sa');if(x)x.click();}
+  if(a.id==='teacher-dash'&&document.getElementById('tn-ov').classList.contains('ta')) tNav('ov');
+}
+
+function showPage(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+function selectRole(r){
+  role=r;
+  const L={'student':'Student','teacher':'Teacher','tester':'Tester'};
+  const D={'student':'Access your personal learning dashboard','teacher':'Monitor your students\' risk profiles','tester':'Test the ML model with custom inputs'};
+  document.getElementById('auth-pill-wrap').innerHTML=`<div class="auth-pill ${r==='teacher'?'orange':r==='tester'?'grn':'blue'}" style="margin-bottom:18px">Logging in as: ${L[r]}</div>`;
+  document.getElementById('auth-sub').textContent=D[r];
+  showPage('auth-page');
+}
+
+function switchTab(t){
+  document.getElementById('form-si').style.display=t==='si'?'block':'none';
+  document.getElementById('form-su').style.display=t==='su'?'block':'none';
+  document.getElementById('tab-si').classList.toggle('active',t==='si');
+  document.getElementById('tab-su').classList.toggle('active',t==='su');
+}
+
+function logout(){
+  role=null;user=null;
+  Object.values(CH).forEach(c=>{try{c.destroy();}catch(e){}});CH={};
+  showPage('landing');
+}
+
+function nameFor(r,em){
+  if(r==='student') return 'Aisha Sharma';
+  if(r==='teacher') return 'Prof. Meera Nair';
+  if(r==='tester')  return 'Gautami Kulkarni';
+  return em.split('@')[0];
+}
+
+function doSignIn(){
+  const em=document.getElementById('si-em').value.trim().toLowerCase();
+  const pw=document.getElementById('si-pw').value;
+  const err=document.getElementById('si-err'); err.style.display='none';
+  if(!em||!pw){err.textContent='Please enter your email and password.';err.style.display='block';return;}
+  const r=KNOWN[em]||role||'student';
+  user={email:em,role:r,name:nameFor(r,em),isNew:!KNOWN[em]};
+  route(r,em,!KNOWN[em]);
+}
+
+function doSignUp(){
+  const nm=document.getElementById('su-nm').value.trim();
+  const em=document.getElementById('su-em').value.trim().toLowerCase();
+  const pw=document.getElementById('su-pw').value;
+  const err=document.getElementById('su-err'); err.style.display='none';
+  if(!nm||!em||!pw||pw.length<6){err.textContent='Please fill all fields. Password must be at least 6 characters.';err.style.display='block';return;}
+  user={email:em,role:role||'student',name:nm,isNew:true};
+  route(role||'student',em,true);
+}
+
+function route(r,em,isNew){
+  const det=KNOWN[em]||r;
+  if(det==='teacher'){
+    document.getElementById('t-em').textContent=em;
+    showPage('teacher-dash'); renderTeacherList();
+  } else if(det==='tester'){
+    document.getElementById('x-em').textContent=em;
+    document.getElementById('x-nm').textContent=user.name;
+    document.getElementById('x-av').textContent=user.name[0].toUpperCase();
+    showPage('tester-dash');
+  } else {
+    document.getElementById('s-em').textContent=em;
+    document.getElementById('s-nm').textContent=user.name;
+    document.getElementById('s-av').textContent=user.name[0].toUpperCase();
+    showPage('student-dash');
+    isNew?renderDay1():renderStudentOv();
+  }
+}
+
+// ── STUDENT DATA ──
+const SD={
+  prob:0.73,risk:'High',
+  drivers:[{key:'median_engagement',shap:2.98},{key:'engagement_slope_14d',shap:1.42},{key:'longest_drop_streak',shap:1.15}],
+  note:`Your recent learning patterns show a notable decline in engagement over the past two weeks, alongside a growing streak of missed activity days. This kind of pattern often reflects a student who is feeling overwhelmed, disconnected, or dealing with external pressures — and that's completely understandable.\n\nWhat we recommend:\n\n1. Reconnect gradually — Start with just 15 minutes of focused study each day. Small, consistent sessions matter far more than irregular long ones.\n\n2. Reach out to your instructor — Share what has been making it difficult to stay on track. Your teacher has access to personalised strategies aligned to your learning pattern.\n\n3. Revisit foundational concepts — Your accuracy on first attempts has dipped recently, which often signals that foundational gaps are building up. A quick review of key topics can restore your confidence.\n\nRemember: your data shows strong engagement in previous weeks. You have the capability. This is a rough patch, not a reflection of your potential.`
+};
+
+function gen50(){return Array.from({length:50},(_,i)=>Math.max(0,Math.min(100,72-0.55*i+(Math.random()-0.5)*14)));}
+function genCon(){return{labels:['Algebra','Probability','Calculus','Statistics','Geometry','Linear Algebra'],fail:[72,45,81,38,63,29]};}
+function gen30(){return Array.from({length:30},()=>Math.max(0,60+(Math.random()-0.3)*110));}
+
+function sNav(tab){
+  ['ov','gr','ai'].forEach(t=>{
+    document.getElementById(`sn-${t}`).classList.remove('sa');
+    document.getElementById(`sn-${t}`).classList.toggle('sa',t===tab);
+  });
+  Object.values(CH).forEach(c=>{try{c.destroy();}catch(e){}});CH={};
+  if(tab==='ov') renderStudentOv();
+  else if(tab==='gr') renderStudentGr();
+  else renderStudentAI();
+}
+
+function renderDay1(){
+  document.getElementById('s-main').innerHTML=`
+    <div class="d1">
+      <div class="d1-t">Welcome, ${user.name}.</div>
+      <p class="d1-s">It's Day 1 of your learning journey with InsightED.<br/><br/>
+      As you engage with your courses, we'll begin tracking your behavioural patterns — engagement, submission habits, concept mastery, and more.<br/><br/>
+      Check back in a few days and your personalised dropout risk analysis, graphs, and AI-powered insights will appear right here.<br/><br/>
+      <span style="color:var(--accent);font-weight:600">Your story starts now. Let's make it a good one.</span></p>
+    </div>`;
+}
+
+function renderStudentOv(){
+  const rc=SD.risk.toLowerCase()==='moderate'?'medium':SD.risk.toLowerCase();
+  const rcol=SD.risk==='High'?'var(--red)':SD.risk==='Moderate'?'var(--yellow)':'var(--green)';
+  document.getElementById('s-main').innerHTML=`
+    <div class="ph"><div class="pt">My Dashboard</div><div class="ps">A snapshot of your learning health based on the last 50 days of activity.</div></div>
+    <div class="cr c3">
+      <div class="card"><div class="cl">Dropout Probability</div><div class="cv" style="color:${rcol}">${(SD.prob*100).toFixed(1)}%</div><div class="cs">Based on your last 50 days</div></div>
+      <div class="card"><div class="cl">Risk Level</div><div style="margin-top:10px"><span class="rb ${rc}">${SD.risk} Risk</span></div><div class="cs" style="margin-top:10px">Threshold at 65%</div></div>
+      <div class="card"><div class="cl">Main Concern</div><div style="font-size:14.5px;font-weight:600;margin-top:8px;line-height:1.4">${LBL[SD.drivers[0].key]}</div><div class="cs">Strongest driver of your risk score</div></div>
+    </div>
+    <div class="sec-lbl">Top Behavioural Drivers</div>
+    <div class="drv-list">
+      ${SD.drivers.map((d,i)=>`
+        <div class="drv-row">
+          <div class="drv-n">${i+1}</div>
+          <div class="drv-lbl">${LBL[d.key]}</div>
+          <div class="drv-track"><div class="drv-fill" style="width:${Math.min(100,(d.shap/3.5)*100)}%"></div></div>
+          <div class="drv-val">${d.shap.toFixed(2)}</div>
+        </div>`).join('')}
+    </div>
+    <div class="cg">
+      <div class="cc full">
+        <div class="ct">Engagement over the last 50 days</div>
+        <div class="cd">Daily session duration. The dashed orange line is a 7-day rolling average.</div>
+        <div class="cw"><canvas id="c-ov-eng"></canvas></div>
+      </div>
+    </div>`;
+  setTimeout(()=>drawEng('c-ov-eng'),30);
+}
+
+function renderStudentGr(){
+  document.getElementById('s-main').innerHTML=`
+    <div class="ph"><div class="pt">My Graphs</div><div class="ps">Visual breakdown of your learning behaviour patterns.</div></div>
+    <div class="cg">
+      <div class="cc"><div class="ct">Engagement trend</div><div class="cd">Session activity over 50 days</div><div class="cw"><canvas id="g1"></canvas></div></div>
+      <div class="cc"><div class="ct">Concept mastery gaps</div><div class="cd">Failure rate by subject area</div><div class="cw"><canvas id="g2"></canvas></div></div>
+      <div class="cc full"><div class="ct">Submission delays</div><div class="cd">Assignment submission delay in minutes over the last 30 days</div><div class="cw" style="height:145px"><canvas id="g3"></canvas></div></div>
+    </div>
+    <div style="margin-bottom:20px">
+      <div class="dr"><h3>Additional insights</h3><select class="cs-sel" onchange="drawDrop(this.value)"><option value="resp">Response Time</option><option value="acc">Accuracy Trend</option><option value="att">Attention Stability</option></select></div>
+      <div class="cc"><div class="cw"><canvas id="g-dr"></canvas></div></div>
+    </div>`;
+  setTimeout(()=>{drawEng('g1');drawCon('g2');drawSub('g3');drawDrop('resp');},30);
+}
+
+function renderStudentAI(){
+  document.getElementById('s-main').innerHTML=`
+    <div class="ph"><div class="pt">AI Insights</div><div class="ps">Personalised analysis powered by Amazon Nova 2 Lite via Bedrock.</div></div>
+    <div class="ai-box">
+      <div class="ai-title">Your personalised intervention</div>
+      <div class="ai-sub">Generated by Amazon Nova 2 Lite · Bedrock</div>
+      <div class="ai-txt">${SD.note.replace(/\n/g,'<br/>')}</div>
+    </div>`;
+}
+
+// ── TEACHER DATA ──
+const STUS=[
+  {id:1,name:'Aditya Sharma', prob:0.87,risk:'High',    eng:22,streak:8,cf:0.78,col:'#e85a5a'},
+  {id:2,name:'Priya Nair',    prob:0.81,risk:'High',    eng:28,streak:6,cf:0.71,col:'#e87040'},
+  {id:3,name:'Rahul Mehta',   prob:0.76,risk:'High',    eng:31,streak:5,cf:0.65,col:'#e85a5a'},
+  {id:4,name:'Sneha Kulkarni',prob:0.72,risk:'High',    eng:35,streak:4,cf:0.60,col:'#e87040'},
+  {id:5,name:'Arjun Patel',   prob:0.69,risk:'High',    eng:38,streak:3,cf:0.55,col:'#c8941c'},
+  {id:6,name:'Kavya Reddy',   prob:0.67,risk:'High',    eng:40,streak:4,cf:0.52,col:'#c8941c'},
+  {id:7,name:'Vikram Singh',  prob:0.66,risk:'High',    eng:42,streak:2,cf:0.48,col:'#c8941c'},
+  {id:8,name:'Ananya Joshi',  prob:0.58,risk:'Moderate',eng:48,streak:2,cf:0.42,col:'#7aaa38'},
+  {id:9,name:'Rohan Desai',   prob:0.52,risk:'Moderate',eng:52,streak:1,cf:0.38,col:'#3dd68c'},
+  {id:10,name:'Ishita Gupta', prob:0.51,risk:'Moderate',eng:55,streak:1,cf:0.35,col:'#3dd68c'},
+];
+
+function tNav(tab){
+  document.getElementById('tn-ls').classList.toggle('ta',tab==='ls');
+  document.getElementById('tn-ls').classList.toggle('sb-item',true);
+  document.getElementById('tn-ov').classList.toggle('ta',tab==='ov');
+  Object.values(CH).forEach(c=>{try{c.destroy();}catch(e){}});CH={};
+  tab==='ls'?renderTeacherList():renderTeacherOv();
+}
+
+function renderTeacherList(){
+  const high=STUS.filter(s=>s.prob>=0.65).length;
+  document.getElementById('t-main').innerHTML=`
+    <div class="ph"><div class="pt">At-Risk Students</div><div class="ps">${high} students above the 65% risk threshold. Click any row to view their full profile.</div></div>
+    <div class="cr c3" style="margin-bottom:20px">
+      <div class="card"><div class="cl">High Risk</div><div class="cv rh">${STUS.filter(s=>s.risk==='High').length}</div><div class="cs">Above 65% probability</div></div>
+      <div class="card"><div class="cl">Moderate Risk</div><div class="cv rm">${STUS.filter(s=>s.risk==='Moderate').length}</div><div class="cs">Between 40–65%</div></div>
+      <div class="card"><div class="cl">Class Average</div><div class="cv" style="color:var(--accent)">${(STUS.reduce((a,s)=>a+s.prob,0)/STUS.length*100).toFixed(1)}%</div><div class="cs">Across all monitored students</div></div>
+    </div>
+    <div class="tw">
+      <table class="st">
+        <thead><tr><th>Student</th><th>Risk Score</th><th>Level</th><th>Avg Engagement</th><th>Inactivity Streak</th><th>Concept Gaps</th></tr></thead>
+        <tbody>
+          ${STUS.map(s=>{
+            const rc=s.risk.toLowerCase()==='moderate'?'medium':s.risk.toLowerCase();
+            return `<tr onclick="viewStu(${s.id})">
+              <td><div class="sn"><div class="sav" style="background:${s.col}">${s.name[0]}</div>${s.name}</div></td>
+              <td><div class="pb"><div class="pf" style="width:${s.prob*100}%;background:${s.col}"></div></div><span style="font-family:var(--ff-mono);font-size:12.5px">${(s.prob*100).toFixed(0)}%</span></td>
+              <td><span class="rb ${rc}">${s.risk}</span></td>
+              <td style="font-family:var(--ff-mono);font-size:13px">${s.eng} min/day</td>
+              <td style="font-family:var(--ff-mono);font-size:13px">${s.streak} days</td>
+              <td style="font-family:var(--ff-mono);font-size:13px">${(s.cf*100).toFixed(0)}%</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderTeacherOv(){
+  document.getElementById('t-main').innerHTML=`
+    <div class="ph"><div class="pt">Class Overview</div><div class="ps">Dropout probability distribution across all monitored students.</div></div>
+    <div class="cc">
+      <div class="ct">Risk score distribution</div>
+      <div class="cd">Color-coded by level — red above 75%, yellow above 50%, green below</div>
+      <div class="cw" style="height:210px"><canvas id="t-dist"></canvas></div>
+    </div>`;
+  setTimeout(()=>{
+    const ctx=document.getElementById('t-dist').getContext('2d');
+    CH['t-dist']=new Chart(ctx,{
+      type:'bar',
+      data:{labels:STUS.map(s=>s.name.split(' ')[0]),datasets:[{
+        data:STUS.map(s=>(s.prob*100).toFixed(1)),
+        backgroundColor:STUS.map(s=>s.prob>=0.75?'rgba(244,100,95,0.5)':s.prob>=0.5?'rgba(240,192,64,0.5)':'rgba(61,214,140,0.5)'),
+        borderColor:STUS.map(s=>s.prob>=0.75?'#f4645f':s.prob>=0.5?'#f0c040':'#3dd68c'),
+        borderWidth:1,borderRadius:5
+      }]},
+      options:{...cd(),scales:{x:xa(),y:{...ya(),max:100}}}
+    });
+  },30);
+}
+
+function viewStu(id){
+  const s=STUS.find(x=>x.id===id);if(!s)return;
+  const rc=s.risk.toLowerCase()==='moderate'?'medium':s.risk.toLowerCase();
+  document.getElementById('t-main').innerHTML=`
+    <div class="bc"><span class="bc-lnk" onclick="renderTeacherList()">← At-Risk Students</span><span class="bc-sep">›</span><span class="bc-cur">${s.name}</span></div>
+    <div class="ph"><div class="pt">${s.name}</div><div class="ps">Individual behavioural profile &nbsp;·&nbsp; <span class="rb ${rc}">${s.risk} Risk — ${(s.prob*100).toFixed(0)}%</span></div></div>
+    <div class="cr c4">
+      <div class="card"><div class="cl">Dropout Probability</div><div class="cv" style="color:${s.col}">${(s.prob*100).toFixed(1)}%</div></div>
+      <div class="card"><div class="cl">Avg Engagement</div><div class="cv">${s.eng}<span style="font-size:14px;color:var(--text3)"> min</span></div></div>
+      <div class="card"><div class="cl">Inactivity Streak</div><div class="cv">${s.streak}<span style="font-size:14px;color:var(--text3)"> days</span></div></div>
+      <div class="card"><div class="cl">Concept Gaps</div><div class="cv rh">${(s.cf*100).toFixed(0)}%</div></div>
+    </div>
+    <div class="cg">
+      <div class="cc"><div class="ct">Engagement trend</div><div class="cd">50-day session activity pattern</div><div class="cw"><canvas id="tv-e"></canvas></div></div>
+      <div class="cc"><div class="ct">Concept mastery</div><div class="cd">Subject-wise failure rate</div><div class="cw"><canvas id="tv-c"></canvas></div></div>
+    </div>
+    <div class="ai-box">
+      <div class="ai-title">Recommended intervention for ${s.name}</div>
+      <div class="ai-sub">Teacher guidance · For educator use</div>
+      <div class="ai-txt">
+        <strong>Suggested actions:</strong><br/><br/>
+        1. <strong>Schedule a 1:1 check-in</strong> — ${s.name}'s engagement has dropped noticeably. A short, low-pressure conversation can surface hidden blockers such as personal stress, topic confusion, or lost motivation.<br/><br/>
+        2. <strong>Assign targeted practice</strong> — Concept failure rate is at ${(s.cf*100).toFixed(0)}%. Focus remediation on the 2–3 weakest topic areas before the next assessment cycle.<br/><br/>
+        3. <strong>Monitor over the next 7 days</strong> — If engagement does not recover within a week, consider escalating to academic support or putting a formal intervention plan in place.<br/><br/>
+        <em style="color:var(--text3)">These suggestions are derived from behavioural signals. Always combine data insights with direct student conversation for best outcomes.</em>
+      </div>
+    </div>`;
+  setTimeout(()=>{drawEng('tv-e');drawCon('tv-c');},30);
+}
+
+// ── CHART HELPERS ──
+function cd(){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'var(--bg3)',borderColor:'var(--border)',borderWidth:1,titleColor:'var(--text)',bodyColor:'var(--text2)'}}};}
+function xa(){return{grid:{color:'rgba(128,128,128,0.07)'},ticks:{color:'var(--text3)',font:{size:10},maxTicksLimit:10}};}
+function ya(){return{grid:{color:'rgba(128,128,128,0.07)'},ticks:{color:'var(--text3)',font:{size:11}}};}
+
+function drawEng(id){
+  const ctx=document.getElementById(id);if(!ctx)return;
+  const v=gen50(),roll=v.map((_,i)=>v.slice(Math.max(0,i-6),i+1).reduce((a,b)=>a+b,0)/Math.min(i+1,7));
+  CH[id]=new Chart(ctx.getContext('2d'),{type:'line',
+    data:{labels:Array.from({length:50},(_,i)=>`D${i+1}`),datasets:[
+      {data:v,borderColor:'var(--accent)',backgroundColor:'rgba(59,158,255,0.05)',borderWidth:1.5,pointRadius:0,fill:true,tension:0.4},
+      {data:roll,borderColor:'var(--warm)',borderWidth:1.5,pointRadius:0,fill:false,tension:0.4,borderDash:[5,4]}
+    ]},
+    options:{...cd(),scales:{x:xa(),y:{...ya(),min:0,max:100}}}
+  });
+}
+function drawCon(id){
+  const ctx=document.getElementById(id);if(!ctx)return;
+  const d=genCon();
+  CH[id]=new Chart(ctx.getContext('2d'),{type:'bar',
+    data:{labels:d.labels,datasets:[{
+      data:d.fail,
+      backgroundColor:d.fail.map(v=>v>60?'rgba(244,100,95,0.4)':v>40?'rgba(240,192,64,0.4)':'rgba(61,214,140,0.4)'),
+      borderColor:d.fail.map(v=>v>60?'#f4645f':v>40?'#f0c040':'#3dd68c'),
+      borderWidth:1,borderRadius:4
+    }]},
+    options:{...cd(),scales:{x:xa(),y:{...ya(),max:100}}}
+  });
+}
+function drawSub(id){
+  const ctx=document.getElementById(id);if(!ctx)return;
+  const d=gen30();
+  CH[id]=new Chart(ctx.getContext('2d'),{type:'line',
+    data:{labels:Array.from({length:30},(_,i)=>`D${i+1}`),datasets:[{data:d,borderColor:'#a855f7',backgroundColor:'rgba(168,85,247,0.05)',borderWidth:1.5,pointRadius:0,fill:true,tension:0.3}]},
+    options:{...cd(),scales:{x:xa(),y:{...ya(),min:0}}}
+  });
+}
+function drawDrop(t){
+  const ctx=document.getElementById('g-dr');if(!ctx)return;
+  if(CH['g-dr']){CH['g-dr'].destroy();delete CH['g-dr'];}
+  const days=Array.from({length:30},(_,i)=>`D${i+1}`);
+  let data,col,lbl;
+  if(t==='resp'){data=days.map(()=>20+Math.random()*40);col='var(--accent)';lbl='Avg Response Time (s)';}
+  else if(t==='acc'){data=days.map((_,i)=>Math.max(20,76-i*0.8+(Math.random()-0.5)*14));col='var(--green)';lbl='Overall Accuracy (%)';}
+  else{data=days.map(()=>Math.random()*10);col='var(--warm)';lbl='Tab Switches (P75)';}
+  CH['g-dr']=new Chart(ctx.getContext('2d'),{type:'line',
+    data:{labels:days,datasets:[{data,borderColor:col,backgroundColor:col.includes('--accent')?'rgba(59,158,255,0.05)':col.includes('--green')?'rgba(61,214,140,0.05)':'rgba(232,132,90,0.05)',borderWidth:1.5,pointRadius:0,fill:true,tension:0.4,label:lbl}]},
+    options:{...cd(),plugins:{...cd().plugins,legend:{display:true,labels:{color:'var(--text3)',font:{size:12}}}},scales:{x:xa(),y:ya()}}
+  });
+}
+
+// ── TESTER ──
+async function runPred(){
+  const btn=document.getElementById('pred-btn');
+  btn.disabled=true;btn.textContent='Running...';
+  document.getElementById('pred-out').innerHTML=`<div style="text-align:center;padding:40px;color:var(--text2)"><div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px"><div class="spin"></div> Running ML model</div><div style="font-size:12.5px;color:var(--text3)">Fetching SHAP values and generating Bedrock narrative...</div></div>`;
+  const p={
+    median_engagement:parseFloat(document.getElementById('f1').value),
+    recent_7d_median_engagement:parseFloat(document.getElementById('f2').value),
+    engagement_cv:parseFloat(document.getElementById('f3').value),
+    engagement_slope_14d:parseFloat(document.getElementById('f4').value),
+    median_submission_delay:parseFloat(document.getElementById('f5').value),
+    tab_switch_p75:parseFloat(document.getElementById('f6').value),
+    median_first_attempt_accuracy:parseFloat(document.getElementById('f9').value),
+    longest_drop_streak:parseInt(document.getElementById('f7').value),
+    median_overall_accuracy:parseFloat(document.getElementById('f10').value),
+    trimmed_avg_response_time:parseFloat(document.getElementById('f8').value),
+    total_attempts:parseInt(document.getElementById('f11').value),
+    weighted_concept_failure:parseFloat(document.getElementById('f12').value),
+    worst_concept_failure:parseFloat(document.getElementById('f13').value),
+    concept_variability:parseFloat(document.getElementById('f14').value)
+  };
+  try{
+    const r=await fetch(`${API}/predict`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
+    showPred(await r.json());
+  }catch(e){
+    document.getElementById('pred-out').innerHTML=`<div style="text-align:center;padding:40px;color:var(--red)"><div style="font-weight:600;margin-bottom:8px">Connection error</div><div style="font-size:12.5px;color:var(--text3)">${e.message}<br/>Check that the App Runner service is running.</div></div>`;
+  }
+  btn.disabled=false;btn.textContent='Run prediction';
+}
+
+function showPred(data){
+  const prob=data.dropout_probability,risk=data.risk_category;
+  const rc=risk.toLowerCase()==='moderate'?'medium':risk.toLowerCase();
+  const rcol=risk==='High'?'var(--red)':risk==='Moderate'?'var(--yellow)':'var(--green)';
+  const shap=data.shap_scores||{};
+  const mx=Math.max(...Object.values(shap).map(Math.abs),0.001);
+  document.getElementById('pred-out').innerHTML=`
+    <div class="gw">
+      <div class="gr" style="border-color:${rcol};box-shadow:0 0 20px ${rcol}20">
+        <div class="gp" style="color:${rcol}">${(prob*100).toFixed(1)}%</div>
+        <div class="gl">dropout risk</div>
+      </div>
+      <span class="rb ${rc}">${risk} Risk</span>
+    </div>
+    <div class="sec-lbl" style="margin-bottom:9px">SHAP Feature Importance</div>
+    <div class="sl">
+      ${Object.entries(shap).map(([k,v])=>`
+        <div class="sr">
+          <div class="sl-lbl">${LBL[k]||k}</div>
+          <div class="sl-track"><div class="sl-fill" style="width:${(Math.abs(v)/mx*100).toFixed(1)}%"></div></div>
+          <div class="sl-val">${v.toFixed(3)}</div>
+        </div>`).join('')}
+    </div>
+    <div class="ai-box" style="margin-top:4px">
+      <div class="ai-title">AI-generated intervention</div>
+      <div class="ai-sub">Amazon Nova 2 Lite · Bedrock</div>
+      <div class="ai-txt" style="font-size:13px">${(data.intervention||'').replace(/\n/g,'<br/>')}</div>
+    </div>`;
+}
+</script>
+</body>
+</html>
