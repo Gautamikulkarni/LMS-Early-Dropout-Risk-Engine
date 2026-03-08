@@ -33,14 +33,14 @@ Enable early detection of disengagement patterns, provide explainable AI insight
 
             LMS Platform  
                 ↓  
-        Data Processing Layer  
-  (Feature Engineering & Behavioral Signals)  
+          Data Processing Layer  
+    (Feature Engineering & Behavioral Signals)  
                 ↓  
-        AI Intelligence Layer  
-  (XGBoost Prediction + SHAP Explainability)  
+          AI Intelligence Layer  
+    (XGBoost Prediction + SHAP Explainability)  
                 ↓  
-      Insight & Intervention Layer  
-  (GenAI Recommendations + Alerts + Dashboard)
+        Insight & Intervention Layer  
+    (GenAI Recommendations + Alerts + Dashboard)
 
 ---
 
