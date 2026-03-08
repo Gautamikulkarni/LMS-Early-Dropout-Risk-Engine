@@ -30,18 +30,16 @@ Enable early detection of disengagement patterns, provide explainable AI insight
 ---
 
 ## System Architecture
-Learning Management System (LMS)
-│
-▼
-Data Processing Layer
-(Feature Engineering & Behavioral Signals)
-│
-▼
-AI Intelligence Layer
-(XGBoost Prediction + SHAP Explainability)
-│
-▼
-Insight & Intervention Layer
+
+    LMS Platform  
+        ↓  
+  Data Processing Layer  
+(Feature Engineering & Behavioral Signals)  
+        ↓  
+  AI Intelligence Layer  
+(XGBoost Prediction + SHAP Explainability)  
+        ↓  
+Insight & Intervention Layer  
 (GenAI Recommendations + Alerts + Dashboard)
 
 ---
