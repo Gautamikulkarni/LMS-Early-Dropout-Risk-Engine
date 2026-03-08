@@ -1,78 +1,95 @@
-# LMS-Early-Dropout-Risk-Engine
-An AI-powered early warning system that integrates with existing Learning Management Systems (LMS) to detect early signs of student disengagement and predict dropout risk using behavioral and performance data.
+# LMS Early Dropout Risk Engine
 
-## 1.Overview
+An AI-powered early warning system that integrates with Learning Management Systems (LMS) to detect early signs of student disengagement and predict dropout risk using behavioral learning data. The system combines machine learning, explainable AI, and generative AI to provide actionable insights for educators and students.
 
-Students rarely drop out suddenly.
-Before disengaging, they show measurable patterns such as reduced activity, declining performance, and prolonged inactivity.
+## Overview
 
-This system passively observes LMS events, analyzes trends using a pre-trained machine learning model, and generates explainable insights for students and educators.
+Students rarely drop out abruptly. Before disengagement occurs, they typically show measurable behavioral signals such as reduced engagement, delayed submissions, declining performance, and inconsistent learning activity.
 
-AI supports decisions — teachers remain in control.
+This system analyzes behavioral patterns from LMS data and predicts dropout risk using a trained machine learning model. Explainable AI techniques highlight the key factors behind each prediction, while generative AI provides clear intervention guidance for educators.
 
-## 2.System Architecture
-LMS Platform
-      ↓ (raw events)
-Data Collection Layer
-      ↓ (feature engineering)
-AI Intelligence Layer
-      ↓ (risk prediction + explainability)
-Reporting & Feedback Layer
-
-## 3.Core Components
-
-API Layer – Secure data ingestion
-
-Cloud Storage (S3 / RDS) – Event & profile storage
-
-ML Model (SageMaker / Python) – Risk prediction
-
-Explainability (SHAP) – Contributing factors
-
-Dashboard & Alerts – Student and teacher insights
-
-## 4.AI Design Principles
-
-Pre-trained global model
-
-Per-student feature tracking
-
-Time-windowed behavioral modeling
-
-Periodic retraining (not per interaction)
-
-Explainable predictions (no black-box decisions)
-
-## 5.Key Inputs
-
-Engagement metrics (session duration, inactivity, login frequency)
-
-Learning interaction data (video completion, replays)
-
-Assessment performance (topic accuracy, error patterns)
-
-Temporal trends (week-to-week engagement decay)
-
-## 6.Outputs
-
-Students
-
-Focus & engagement score
-
-Personalized improvement insights
-
-Teachers
-
-Dropout risk level (Low / Medium / High)
-
-Top contributing risk factors
-
-Engagement trend analysis
-
-## Tech Stack
-
-Python • AWS (API Gateway, S3, RDS, SageMaker) • SHAP
+The goal is to enable early intervention and support student success while keeping educators in control of decision-making.
 
 ## Goal
 
-Enable early detection, empower students through self-awareness, and support teacher-led interventions to reduce dropout risk.
+Enable early detection of disengagement patterns, provide explainable AI insights, and support timely educator interventions to reduce student dropout risk in digital learning environments.
+
+## System Architecture
+
+LMS Platform
+↓ (student activity and learning events)
+Data Processing Layer
+↓ (feature engineering and behavioral signals)
+AI Intelligence Layer
+↓ (risk prediction and explainability)
+Insight & Intervention Layer
+
+## Core Components
+
+API Layer
+Handles secure ingestion of behavioral learning data and prediction requests.
+
+Cloud Storage
+Stores datasets, trained models, and application assets.
+
+Machine Learning Model
+An XGBoost model trained on behavioral engagement patterns to estimate dropout probability.
+
+Explainability Layer
+SHAP analysis highlights the most influential behavioral factors behind predictions.
+
+AI Intervention Engine
+Generative AI generates actionable recommendations to help educators support at-risk students.
+
+Dashboard and Alerts
+Provides real-time risk analysis and automated notifications for high-risk students.
+
+## Key Inputs
+
+Engagement signals such as login frequency, inactivity duration, and session activity.
+
+Learning interaction data including content completion, replays, and navigation behavior.
+
+Assessment performance metrics such as concept accuracy and failure patterns.
+
+Temporal engagement trends indicating declining participation over time.
+
+## Outputs
+
+## Students
+
+Engagement insights and behavioral awareness.
+
+Personalized guidance for improving learning consistency.
+
+## Educators
+
+Dropout risk levels categorized as Low, Moderate, or High.
+
+Key behavioral drivers influencing risk predictions.
+
+AI-generated intervention recommendations.
+
+## Technology Stack
+
+Python and FastAPI for backend services.
+
+AWS S3 for dataset storage, model artifacts, and frontend hosting.
+
+Amazon SageMaker for machine learning model training.
+
+AWS App Runner for scalable backend deployment.
+
+Amazon Cognito for secure user authentication and access control.
+
+Amazon Bedrock for generative AI-based intervention recommendations.
+
+Amazon SNS for automated alerts and notifications.
+
+SHAP for explainable AI and model interpretability.
+
+## Impact
+
+The system transforms raw learning behavior data into actionable insights, enabling early intervention and improving student engagement and retention.
+
+By combining predictive analytics, explainable AI, and generative AI on scalable cloud infrastructure, the solution demonstrates how intelligent systems can enhance modern digital education platforms.
